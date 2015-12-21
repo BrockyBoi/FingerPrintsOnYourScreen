@@ -68,8 +68,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\BossTextScript.cs" />
-    <Compile Include="Assets\SBTextScript.cs" />
     <Compile Include="Assets\Scripts\BossScripts\LargeBossScript.cs" />
     <Compile Include="Assets\Scripts\BossScripts\MediumBossScript.cs" />
     <Compile Include="Assets\Scripts\BossScripts\SmallBossScript.cs" />
@@ -79,7 +77,11 @@
     <Compile Include="Assets\Scripts\ControllerScripts\MenuScript.cs" />
     <Compile Include="Assets\Scripts\ControllerScripts\MouseControllerScript.cs" />
     <Compile Include="Assets\Scripts\ControllerScripts\ScreenRelativePosition.cs" />
+    <Compile Include="Assets\Scripts\FireworkScripts\FireworkControllerScript.cs" />
+    <Compile Include="Assets\Scripts\FireworkScripts\FireworkScript.cs" />
+    <Compile Include="Assets\Scripts\ParticleSystems\BossTextScript.cs" />
     <Compile Include="Assets\Scripts\ParticleSystems\ExplosionSystem.cs" />
+    <Compile Include="Assets\Scripts\ParticleSystems\SBTextScript.cs" />
     <Compile Include="Assets\Scripts\ParticleSystems\TextMovementScript.cs" />
     <Compile Include="Assets\Scripts\RegularBlockScripts\BlackHoleBlock.cs" />
     <Compile Include="Assets\Scripts\RegularBlockScripts\BlockScript.cs" />

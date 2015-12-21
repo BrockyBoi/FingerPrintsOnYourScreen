@@ -36,9 +36,6 @@ public class GameControllerScript : MonoBehaviour {
 
 
     //Round system
-    float newRound;
-    float roundLength;
-    bool nextRound;
     bool bossRound;
     int round;
 
@@ -303,8 +300,9 @@ public class GameControllerScript : MonoBehaviour {
     public void displayScore()
     {
         scoreText.text = "Score: " + score.ToString();
+        highScoreText.text = "High Score: " + highScore.ToString();
 
-        if(score > highScore)
+        if (score > highScore)
         {
             highScore = score;
             PlayerPrefs.SetInt("HighScore", highScore);
