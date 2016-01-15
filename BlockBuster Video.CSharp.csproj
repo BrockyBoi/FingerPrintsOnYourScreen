@@ -76,6 +76,7 @@
     <Compile Include="Assets\Scripts\ControllerScripts\GameControllerScript.cs" />
     <Compile Include="Assets\Scripts\ControllerScripts\MenuScript.cs" />
     <Compile Include="Assets\Scripts\ControllerScripts\MouseControllerScript.cs" />
+    <Compile Include="Assets\Scripts\ControllerScripts\PauseScript.cs" />
     <Compile Include="Assets\Scripts\ControllerScripts\ScreenRelativePosition.cs" />
     <Compile Include="Assets\Scripts\FireworkScripts\FireworkControllerScript.cs" />
     <Compile Include="Assets\Scripts\FireworkScripts\FireworkScript.cs" />

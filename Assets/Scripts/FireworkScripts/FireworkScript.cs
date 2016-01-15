@@ -32,14 +32,17 @@ public class FireworkScript : MonoBehaviour {
 
     public virtual void OnMouseDown()
     {
+        if(!FireworkControllerScript.paused)
+        {
             health--;
-            Debug.Log("hiya");
+        }
     }
 
     public virtual void healthSystem()
     {
         if(health <= 0)
         {
+            Instantiate(explosionPrefab, transform.position, Quaternion.identity);
             Destroy(gameObject);
         }
 
@@ -52,13 +55,16 @@ public class FireworkScript : MonoBehaviour {
 
     public virtual void fly()
     {
-        if (tag == "Firework")
+        if (!FireworkControllerScript.paused)
         {
-            rb2d.velocity = transform.up * flySpeed;
-        }
-        else if (tag == "Boss Firework")
-        {
-            rb2d.velocity = transform.up * bossFlySpeed;
+            if (tag == "Firework")
+            {
+                rb2d.velocity = transform.up * flySpeed;
+            }
+            else if (tag == "Boss Firework")
+            {
+                rb2d.velocity = transform.up * bossFlySpeed;
+            }
         }
     }
 

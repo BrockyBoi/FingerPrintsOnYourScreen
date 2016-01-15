@@ -6,16 +6,7 @@ using System.Collections;
 public class GameControllerScript : MonoBehaviour {
 	public static GameControllerScript control;
 
-
-    PhysicsBlockScript boss;
-
-    //Sizes of each block
-    float sizes;
-    float totalSize;
-    float totalSizeX;
-    float totalSizeY;
-
-    float screenSize;
+    public static PhysicsBlockScript boss;
 
     //Score System
     public int highScore;
@@ -24,6 +15,7 @@ public class GameControllerScript : MonoBehaviour {
 
     //Text
     public Canvas deathCanvas;
+    public static bool paused;
     public Text highScoreText;
     public Text healthText;
     public Text bossHealth;
@@ -34,11 +26,10 @@ public class GameControllerScript : MonoBehaviour {
     float spawnTime;
     public static float spawnRate;
 
-
     //Round system
-    bool bossRound;
+    public static bool bossRound;
     int round;
-
+    public static bool changeRound;
 
     //Block prefabs
     public GameObject block;
@@ -51,7 +42,6 @@ public class GameControllerScript : MonoBehaviour {
     public GameObject largeBoss;
 	public GameObject explosionParticles;
 
-
     //Health system
     public static bool dead;
     public static int blockHealth;
@@ -59,28 +49,36 @@ public class GameControllerScript : MonoBehaviour {
 
     //Difficulty System
     public float nextDifficulty;
+    float easyDifficulty;
+    float mediumDifficulty;
+    float hardDifficulty;
+    bool easy;
+    bool medium;
+    bool hard;
     public int difficultyLevel;
 
     //Variables all blocks share
-    PhysicsBlockScript blockScript = new PhysicsBlockScript();
+    PhysicsBlockScript blockScript;
 
     public static float growRate;
     public static float attackRate;
 
     public static int regularDamage = 1;
 
+    public static bool smallBossActive = false;
     public static float smallBossAttack = 2;
     public static int smallBossDamage = 1;
     public static int smallBossCount = 0;
 
+    public static bool mediumBossActive = false;
     public static float mediumBossAttack = 2.5f;
     public static int mediumBossDamage;
 
+    public static bool largeBossActive = false;
     public static float bossAttack = 20;
 
-
     //Arraylist of all blocks currently in the game
-    List<PhysicsBlockScript> blockList;
+   //public static List<PhysicsBlockScript> blockList;
 
 
     // Use this for initialization
@@ -90,8 +88,6 @@ public class GameControllerScript : MonoBehaviour {
 			control = this;
 		} else
 			Destroy (this);
-
-
 
         //spawnSmallBoss();
 
@@ -106,26 +102,24 @@ public class GameControllerScript : MonoBehaviour {
 
         //Score system
         score = 0;
-        scoreIncrement = 10;
-
-        if(PlayerPrefs.GetInt("HighScore") != null)
-        {
-            highScore = PlayerPrefs.GetInt("HighScore");
-        }
+        scoreIncrement = 10;        
 
         //First round / difficulty
         bossRound = false;
         round = 1;
         difficultyLevel = 1;
+        changeRound = false;
 
-        //Screen size stuff
-        screenSize = CameraScript.screenSize.x * CameraScript.screenSize.y;
+        //Difficulty 
+        easyDifficulty = 15;
+        mediumDifficulty = 10;
+        hardDifficulty = 6;
 
-        //Initializes the arraylist
-        blockList = PhysicsBlockScript.blockList;
+        easy = false;
+        medium = false;
+        hard = false;
 
-        //Time when next difficulty curve happens
-        nextDifficulty = Time.time + 15;
+        difficultySetting();
 
         //Spawn rate variables
         spawnRate = 1f;
@@ -140,14 +134,21 @@ public class GameControllerScript : MonoBehaviour {
         //Boss variables 
         bossAttack = 20;
 
-        blockScript.newVariables(attackRate, growRate, regularDamage, blockHealth, bossAttack);
+        //blockScript.newVariables(attackRate, growRate, regularDamage, blockHealth, bossAttack);
 
         //Text
+        getHighScore();
+        Debug.Log("Highscore is : " + highScore);
+
         healthText.text = "Health: " + health.ToString();
         bossHealth.text = "";
 
         scoreText.text = "Score: " + score.ToString();
         highScoreText.text = "High Score: " + highScore.ToString();
+
+        paused = false;
+
+        //blockList = new List<PhysicsBlockScript>();
         
     }
 	
@@ -160,9 +161,13 @@ public class GameControllerScript : MonoBehaviour {
 
         spawnSystem();
 
+        ifBeatBoss();
+
         difficulty();
 
         displayScore();
+
+        newRound();
     }
 
     //Endless spawn system
@@ -175,13 +180,23 @@ public class GameControllerScript : MonoBehaviour {
                 spawnTime = Time.time + spawnRate;
                 spawnRegular();
             }
-            if (round % 4 == 0)
+
+            if (round % 4 == 0 && easy)
             {
-                bossRound = true;
+                spawnTime = Time.time + 100;
+                bossSpawner();
+            }
+            else if (round % 6 == 0 && medium)
+            {
+                spawnTime = Time.time + 100;
+                bossSpawner();
+            }
+            else if (round % 10 == 0 && hard)
+            {
+                spawnTime = Time.time + 100;
                 bossSpawner();
             }
         }
-        ifBeatBoss();
     }
 
     void difficulty()
@@ -190,17 +205,8 @@ public class GameControllerScript : MonoBehaviour {
         {
             difficultyLevel++;
             round++;
-            if (round % 4 == 0)
-            {
-                spawnTime = Time.time + 60;
-                nextDifficulty = Time.time + 60;
-                bossRound = true;
-                bossSpawner();
-            }
-            else
-            {
-                nextDifficulty = Time.time + 15;
-            }
+
+            difficultySetting();
 
             growRate += .03f;
 
@@ -234,25 +240,41 @@ public class GameControllerScript : MonoBehaviour {
             scoreIncrement += 5;
 
             //New variables are set for blocks
-            blockScript.newVariables(attackRate, growRate, regularDamage, blockHealth, bossAttack);
+            //blockScript.newVariables(attackRate, growRate, regularDamage, blockHealth, bossAttack);
         }
     }
 
     void ifBeatBoss()
     {
-        if(bossRound)
+        if(bossRound && smallBossActive)
         {
-            if(blockList.Count == 0 || smallBossCount == 8) 
+            if(smallBossCount == 8)
             {
-                round++;
+                changeRound = true;
                 bossRound = false;
-                nextDifficulty = Time.time + 15;
-                spawnTime = Time.time;
-
+                smallBossActive = false;
                 smallBossCount = 0;
-
-                boss = null;
             }
+            //if(blockList.Count == 0) 
+            //{
+            //    round++;
+            //    bossRound = false;
+            //    difficultySetting();
+            //    spawnTime = Time.time;
+
+            //    boss = null;
+            //}
+        }
+    }
+
+    public void newRound()
+    {
+        if(changeRound)
+        {
+            round++;
+            spawnTime = Time.time;
+            difficultySetting();
+            changeRound = false;
         }
     }
 
@@ -273,19 +295,19 @@ public class GameControllerScript : MonoBehaviour {
 
     public void displayBoss()
     {
-        if (bossRound && boss == null)
+        if (bossRound)
         {
-            for (int i = 0; i < blockList.Count; i++)
-            {
-                if (blockList[i].tag == "Medium Boss")
-                {
-                    boss = blockList[i];
-                }
-                if (blockList[i].tag == "Large Boss")
-                {
-                    boss = blockList[i];
-                }
-            }
+            //for (int i = 0; i < blockList.Count; i++)
+            //{
+            //    if (blockList[i].tag == "Medium Boss")
+            //    {
+            //        boss = blockList[i];
+            //    }
+            //    if (blockList[i].tag == "Large Boss")
+            //    {
+            //        boss = blockList[i];
+            //    }
+            //}
         }
         if(boss != null)
         {
@@ -297,6 +319,57 @@ public class GameControllerScript : MonoBehaviour {
         }
     }
 
+    public void difficultySetting()
+    {
+        if (tag == "Easy Controller")
+        {
+            easy = true;
+            nextDifficulty = Time.time + easyDifficulty;
+        }
+        else if (tag == "Medium Controller")
+        {
+            medium = true;
+            nextDifficulty = Time.time + mediumDifficulty;
+        }
+        else if (tag == "Hard Controller")
+        {
+            hard = true;
+            nextDifficulty = Time.time + hardDifficulty;
+        }
+    }
+
+    public void setHighScore()
+    {
+        if (easy)
+        {
+            PlayerPrefs.SetInt("HighScore Easy", highScore);
+        }
+        else if (medium)
+        {
+            PlayerPrefs.SetInt("HighScore Medium", highScore);
+        }
+        else if (hard)
+        {
+            PlayerPrefs.SetInt("HighScore Hard", highScore);
+        }
+    }
+
+    public void getHighScore()
+    {
+        if (easy)
+        {
+            highScore = PlayerPrefs.GetInt("HighScore Easy");
+        }
+        else if (medium)
+        {
+            highScore = PlayerPrefs.GetInt("HighScore Medium");
+        }
+        else if (hard)
+        {
+            highScore = PlayerPrefs.GetInt("HighScore Hard");
+        }
+    }
+
     public void displayScore()
     {
         scoreText.text = "Score: " + score.ToString();
@@ -305,7 +378,8 @@ public class GameControllerScript : MonoBehaviour {
         if (score > highScore)
         {
             highScore = score;
-            PlayerPrefs.SetInt("HighScore", highScore);
+
+            setHighScore();
         }
     }
 
@@ -333,13 +407,11 @@ public class GameControllerScript : MonoBehaviour {
     void spawnMediumBoss()
     {
         Instantiate(mediumBoss, new Vector3(0, 0, 0), Quaternion.identity);
-        //mediumBossText.enabled = true;
     }
 
     void spawnLargeBoss()
     {
         Instantiate(largeBoss, new Vector3(0, 0, 0), Quaternion.identity);
-        //largeBossText.enabled = true;
     }
 
     void bossSpawner()

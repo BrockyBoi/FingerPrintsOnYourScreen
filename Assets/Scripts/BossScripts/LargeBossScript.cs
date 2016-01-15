@@ -3,15 +3,14 @@ using UnityEngine.UI;
 using System.Collections;
 
 public class LargeBossScript : PhysicsBlockScript {
-    //public Text bossHealth;
-    int increment;
 
     // Use this for initialization
     public override void Start()
     {
         base.Start();
 
-        increment = GameControllerScript.scoreIncrement;
+        GameControllerScript.bossRound = true;
+        GameControllerScript.boss = this;
 
         health = 60;
 
@@ -22,13 +21,14 @@ public class LargeBossScript : PhysicsBlockScript {
 
         currentTime = Time.time;
 
-       // bossHealth = GetComponent<Text>();
-
     }
         // Update is called once per frame
         public override void Update () {
         if(health <= 0)
         {
+            GameControllerScript.changeRound = true;
+            GameControllerScript.bossRound = false;
+            GameControllerScript.boss = null;
             GameControllerScript.incrementScore(500);
         }
         base.Update();

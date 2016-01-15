@@ -10,7 +10,7 @@ public class DeathScreenScript : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-        screen = GetComponent<Canvas>();
+       // screen = GetComponent<Canvas>();
         yes = GetComponent<Button>();
         no = GetComponent<Button>();
 	}
@@ -27,6 +27,6 @@ public class DeathScreenScript : MonoBehaviour {
 
     public void pressNo()
     {
-        Application.LoadLevel(0);
+        Application.LoadLevel("Main Menu");
     }
 }

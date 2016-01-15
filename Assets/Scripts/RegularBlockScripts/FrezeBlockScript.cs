@@ -52,7 +52,7 @@ public class FrezeBlockScript : PhysicsBlockScript {
             }
             else
             {
-                blockList.Remove(thisBlock);
+               // GameControllerScript.blockList.Remove(thisBlock);
                 Destroy(gameObject);
             }
 

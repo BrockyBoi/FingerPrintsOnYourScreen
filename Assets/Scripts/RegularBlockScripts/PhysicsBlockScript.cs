@@ -16,7 +16,7 @@ public class PhysicsBlockScript : MonoBehaviour
     public float spawnRate;
 
     public float currentTime;
-    private double nextHealth;
+    //private double nextHealth;
 
     //Boss variables
     public static float smallBossAttack;
@@ -60,7 +60,7 @@ public class PhysicsBlockScript : MonoBehaviour
     public bool canGrow;
     public float growRate;
 
-    public static List<PhysicsBlockScript> blockList = new List<PhysicsBlockScript>();
+    //public static List<PhysicsBlockScript> blockList = new List<PhysicsBlockScript>();
     public PhysicsBlockScript thisBlock;
 
     void Awake()
@@ -77,20 +77,22 @@ public class PhysicsBlockScript : MonoBehaviour
     // Update is called once per frame
     public virtual void Update()
     {
+        if (!GameControllerScript.paused)
+        {
+            destroyBlock();
 
-        destroyBlock();
+            //showHealth();
 
-        //showHealth();
+            // addHealth();
 
-        // addHealth();
+            grow();
 
-        grow();
+            // spawnBlock();
 
-        // spawnBlock();
+            //thaw();
 
-        thaw();
-
-        // regenerate();
+            // regenerate();
+        }
     }
 
     public void generalConstructor()
@@ -102,7 +104,7 @@ public class PhysicsBlockScript : MonoBehaviour
                      GameControllerScript.bossAttack);
 
         //Spawnrate if they ever need it
-        spawnRate = Random.Range(2, 5);
+        //spawnRate = Random.Range(2, 5);
 
         //Rigid body
         rb2d = GetComponent<Rigidbody2D>();
@@ -114,18 +116,19 @@ public class PhysicsBlockScript : MonoBehaviour
         }
 
         //Places blocks in arraylist
-        thisBlock = this;
-        blockList.Add(thisBlock);
+        //thisBlock = this;
+        //GameControllerScript.blockList.Add(this);
+        //Debug.Log(GameControllerScript.blockList);
 
         //Color and renderers
-        rend = gameObject.GetComponent<SpriteRenderer>();
+        rend = GetComponent<SpriteRenderer>();
         col = rend.material.color;
         red = 0;
 
         frozen = false;
 
         currentTime = Time.time;
-        nextHealth = currentTime + 1.5;
+        //nextHealth = currentTime + 1.5;
 
         //Size variables
         transform.localScale = new Vector3(0, 0, 0);
@@ -136,15 +139,6 @@ public class PhysicsBlockScript : MonoBehaviour
         healthRate = 2.5;
 
         clickedOn = false;
-
-        //Boss Variables
-
-        //textHealth = new GameObject();
-        //textHealth.AddComponent<TextMesh>();
-        //textHealth.transform.parent = transform;
-
-        //showHealth();
-
 
 		//set up explosion prefab
 		explosionPrefab = GameControllerScript.control.explosionParticles;
@@ -174,19 +168,22 @@ public class PhysicsBlockScript : MonoBehaviour
 
     public virtual void grow()
     {
-        if (!frozen && transform.localScale.x < maxSize.x)
+        if (!GameControllerScript.paused)
         {
-            transform.localScale = transform.localScale += new Vector3(growRate, growRate, 0);
-
-            if (transform.localScale.x + growRate >= maxSize.x)
+            if (!frozen && transform.localScale.x < maxSize.x)
             {
-                currentTime = Time.time;
-                attackTime = currentTime + attackRate;
+                transform.localScale = transform.localScale += new Vector3(growRate, growRate, 0);
+
+                if (transform.localScale.x + growRate >= maxSize.x)
+                {
+                    currentTime = Time.time;
+                    attackTime = currentTime + attackRate;
+                }
             }
-        }
-        else if (transform.localScale.x >= maxSize.x)
-        {
-            attack();
+            else if (transform.localScale.x >= maxSize.x)
+            {
+                attack();
+            }
         }
 
     }
@@ -194,12 +191,12 @@ public class PhysicsBlockScript : MonoBehaviour
 
     public virtual void OnMouseDown()
     {
-        if (!GameControllerScript.dead)
+        if (!GameControllerScript.dead && !GameControllerScript.paused)
         {
             health--;
-            clickedOn = true;
-            clickTimer = Time.time + 2;
-            float num = ((float)health / maxHealth);
+            //clickedOn = true;
+            //clickTimer = Time.time + 2;
+            //float num = ((float)health / maxHealth);
             //col.a = col.a * num;
             //rend.color = col;
         }
@@ -211,7 +208,7 @@ public class PhysicsBlockScript : MonoBehaviour
         if (health <= 0)
         {
             GameControllerScript.score += GameControllerScript.scoreIncrement;
-            blockList.Remove(thisBlock);
+            //GameControllerScript.blockList.Remove(thisBlock);
 			Instantiate(explosionPrefab,transform.position,Quaternion.identity);
             GameObject floatingText = Instantiate(textPrefab) as GameObject;
             floatingText.transform.localPosition = new Vector2(transform.localPosition.x, transform.localPosition.y + 2);
@@ -219,56 +216,56 @@ public class PhysicsBlockScript : MonoBehaviour
         }
     }
 
-    public virtual void addHealth()
-    {
-        if (Time.time >= nextHealth && frozen != true)
-        {
-            currentTime = Time.time;
-            nextHealth = currentTime + healthRate;
-            health++;
-            if (maxHealth < health)
-            {
-                maxHealth = health;
-            }
-        }
-    }
+    //public virtual void addHealth()
+    //{
+    //    if (Time.time >= nextHealth && frozen != true)
+    //    {
+    //        currentTime = Time.time;
+    //        nextHealth = currentTime + healthRate;
+    //        health++;
+    //        if (maxHealth < health)
+    //        {
+    //            maxHealth = health;
+    //        }
+    //    }
+    //}
 
-    public virtual void setFreeze()
-    {
-        frozen = true;
-        thawTime = Time.time + 1.5;
-    }
+    //public virtual void setFreeze()
+    //{
+    //    frozen = true;
+    //    thawTime = Time.time + 1.5;
+    //}
 
-    public virtual void thaw()
-    {
-        if (frozen == true)
-        {
-            if (Time.time >= thawTime)
-            {
-                frozen = false;
-            }
-        }
-    }
+    //public virtual void thaw()
+    //{
+    //    if (frozen == true)
+    //    {
+    //        if (Time.time >= thawTime)
+    //        {
+    //            frozen = false;
+    //        }
+    //    }
+    //}
 
-    public virtual void regenerate()
-    {
-        if (clickedOn)
-        {
-            if (Time.time >= clickTimer)
-            {
-                clickedOn = false;
-                health = maxHealth;
-                //col.a = 1.0f;
-                //rend.color = col;
-            }
-        }
-    }
+    //public virtual void regenerate()
+    //{
+    //    if (clickedOn)
+    //    {
+    //        if (Time.time >= clickTimer)
+    //        {
+    //            clickedOn = false;
+    //            health = maxHealth;
+    //            col.a = 1.0f;
+    //            rend.color = col;
+    //        }
+    //    }
+    //}
 
-    public void flyAway()
-    {
-        gameObject.GetComponent<BoxCollider2D>().isTrigger = true;
-        Destroy(gameObject, 3);
-    }
+    //public void flyAway()
+    //{
+    //    gameObject.GetComponent<BoxCollider2D>().isTrigger = true;
+    //    Destroy(gameObject, 3);
+    //}
 
     public void chargeRedNormal()
     {
@@ -325,11 +322,4 @@ public class PhysicsBlockScript : MonoBehaviour
             rb2d.AddForce(new Vector3(Random.Range(750f, 1000f), Random.Range(-750f, -1000f), 0));
         }
     }
-
-    //public virtual void showHealth()
-    //{
-    //    displayHealth.text = "" + health;
-    //    textHealth.GetComponent<TextMesh>().text = displayHealth.text;
-    //}
-
 }

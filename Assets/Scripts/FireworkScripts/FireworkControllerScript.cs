@@ -4,18 +4,19 @@ using System.Collections.Generic;
 using System.Collections;
 
 public class FireworkControllerScript : MonoBehaviour {
+    public static FireworkControllerScript control;
 
     //Score System
     public int highScore;
     public static int score;
     public static int scoreIncrement;
 
-    ////Text
-    //public Canvas deathCanvas;
-    //public Text highScoreText;
-    //public Text healthText;
-    //public Text bossHealth;
-    //public Text scoreText;
+    //Text
+    public Canvas deathCanvas;
+    public Text highScoreText;
+    public Text healthText;
+    public Text bossHealth;
+    public Text scoreText;
 
     //Spawn system
     float currentTime;
@@ -24,6 +25,7 @@ public class FireworkControllerScript : MonoBehaviour {
 
     //Fireworks
     public GameObject standardFirework;
+    public GameObject fireworkExplosion;
 
     //Health system
     public static bool dead;
@@ -33,6 +35,7 @@ public class FireworkControllerScript : MonoBehaviour {
     //Variables given to fireworks
     public static float flySpeed;
     public static float bossFlySpeed;
+    public static bool paused;
 
     //Arraylist of all fireworks currently in the game
     List<FireworkScript> fireworkList;
@@ -43,13 +46,25 @@ public class FireworkControllerScript : MonoBehaviour {
 
     //Difficulty System
     public float nextDifficulty;
+    float easyDifficulty;
+    float mediumDifficulty;
+    float hardDifficulty;
+    bool easy;
+    bool medium;
+    bool hard;
     public int difficultyLevel;
 
-    FireworkScript fireworkScript = new FireworkScript();
+    FireworkScript fireworkScript;
 
 
     // Use this for initialization
     void Start () {
+        //set up static controller
+        if (control == null)
+            control = this;
+        else
+            Destroy(this);
+
         //Beginning health
         health = 5;
         dead = false;
@@ -58,18 +73,23 @@ public class FireworkControllerScript : MonoBehaviour {
         score = 0;
         scoreIncrement = 10;
 
-        if (PlayerPrefs.GetInt("HighScore") != null)
-        {
-            highScore = PlayerPrefs.GetInt("HighScore");
-        }
+        getHighScore();
 
         //First round / difficulty
         bossRound = false;
         round = 1;
         difficultyLevel = 1;
 
-        //Time when next difficulty curve happens
-        nextDifficulty = Time.time + 15;
+        //Difficulty settings
+        easyDifficulty = 15;
+        mediumDifficulty = 10;
+        hardDifficulty = 6;
+
+        easy = false;
+        medium = false;
+        hard = false;
+
+        difficultySetting();
 
         //Spawn rate variables
         spawnRate = 1f;
@@ -78,24 +98,27 @@ public class FireworkControllerScript : MonoBehaviour {
         //Firework variables
         flySpeed = 9;
         fireworkHealth = 1;
+        paused = false;
 
         //Boss variables
         bossFlySpeed = 1;
 
-        ////Text
-        //healthText.text = "Health: " + health.ToString();
-        //bossHealth.text = "";
+        //Text
+        healthText.text = "Health: " + health.ToString();
+        bossHealth.text = "";
 
-        //scoreText.text = "Score: " + score.ToString();
-        //highScoreText.text = "High Score: " + highScore.ToString();
+        scoreText.text = "Score: " + score.ToString();
+        highScoreText.text = "High Score: " + highScore.ToString();
+
+        paused = false;
     }
 	
 	// Update is called once per frame
 	void Update () {
 
-        //displayHealth();
+        displayHealth();
 
-        //displayScore();
+        displayScore();
 
         spawnSystem();
 
@@ -135,7 +158,7 @@ public class FireworkControllerScript : MonoBehaviour {
             //}
             //else
             //{
-                nextDifficulty = Time.time + 15;
+                difficultySetting();
             //}
 
             //How long it takes for controller to create new firework
@@ -158,39 +181,87 @@ public class FireworkControllerScript : MonoBehaviour {
             }
 
             scoreIncrement += 5;
-            Debug.Log("" + round + " = " + round * 15 + " seconds");
+
             //New variables are set for blocks
             fireworkScript.newVariables(flySpeed, bossFlySpeed, fireworkHealth);
         }
     }
 
 
-    //public void displayHealth()
-    //{
-    //    if (health > 0)
-    //    {
-    //        deathCanvas.enabled = false;
-    //        healthText.text = "Health: " + health.ToString();
-    //    }
-    //    else
-    //    {
-    //        dead = true;
-    //        deathCanvas.enabled = true;
-    //        healthText.text = "Deaderinio";
-    //    }
-    //}
+    public void displayHealth()
+    {
+        if (health > 0)
+        {
+            deathCanvas.gameObject.SetActive(false);
+            healthText.text = "Health: " + health.ToString();
+        }
+        else
+        {
+            dead = true;
+            deathCanvas.gameObject.SetActive(true);
+            healthText.text = "Deaderinio";
+        }
+    }
 
-    //public void displayScore()
-    //{
-    //    scoreText.text = "Score: " + score.ToString();
-    //    highScoreText.text = "High Score: " + highScore.ToString();
+    public void displayScore()
+    {
+        scoreText.text = "Score: " + score.ToString();
+        highScoreText.text = "High Score: " + highScore.ToString();
 
-    //    if (score > highScore)
-    //    {
-    //        highScore = score;
-    //        PlayerPrefs.SetInt("HighScore", highScore);
-    //    }
-    //}
+        setHighScore();
+    }
+
+    public void getHighScore()
+    {
+        if (easy)
+        {
+            highScore = PlayerPrefs.GetInt("F HighScore Easy");
+        }
+        else if (medium)
+        {
+            highScore = PlayerPrefs.GetInt("F HighScore Medium");
+        }
+        else if (hard)
+        {
+            highScore = PlayerPrefs.GetInt("F HighScore Hard");
+        }
+    }
+
+    public void setHighScore()
+    {
+        if (easy)
+        {
+            PlayerPrefs.SetInt("F HighScore Easy", highScore);
+        }
+        else if (medium)
+        {
+            PlayerPrefs.SetInt("F HighScore Medium", highScore);
+        }
+        else if (hard)
+        {
+            PlayerPrefs.SetInt("F HighScore Hard", highScore);
+        }
+    }
+
+    public void difficultySetting()
+    {
+
+        if (tag == "F Easy Controller")
+        {
+            easy = true;
+            nextDifficulty = Time.time + easyDifficulty;
+        }
+        else if (tag == "F Medium Controller")
+        {
+            medium = true;
+            nextDifficulty = Time.time + mediumDifficulty;
+        }
+        else if (tag == "F Hard Controller")
+        {
+            hard = true;
+            nextDifficulty = Time.time + hardDifficulty;
+        }
+    }
 
     public void takeDamage(int damage)
     {
@@ -206,16 +277,13 @@ public class FireworkControllerScript : MonoBehaviour {
     void spawnRegular()
     {
         float angle;
-        float target;
         int spawnPosX = Random.Range(-25, 25);
         if(spawnPosX < 0)
         {
-            target = Random.Range(0, 20);
             angle = Random.Range(-10, -50);
         }
         else
         {
-            target = Random.Range(-20, 0);
             angle = Random.Range(10, 50);
         }
         GameObject obj = (GameObject)Instantiate(standardFirework, new Vector3(spawnPosX, -20), Quaternion.identity);
